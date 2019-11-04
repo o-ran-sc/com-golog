@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "87ed74fd_b148092f",
+        "filename": "ci/Dockerfile",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-11-04T14:56:09Z",
+      "side": 1,
+      "message": "If it matters, O-RAN-SC project defines a base builder image with Go and other third-party libraries pre-installed.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 4
+      },
+      "revId": "1c72a2f225719d01e4438fdc418a97046e53fe09",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c111655_815d4a4b",
+        "filename": "go.mod",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000014
+      },
+      "writtenOn": "2019-11-04T14:56:09Z",
+      "side": 1,
+      "message": "Is this code? If so it should have a license header",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 1,
+        "endChar": 1
+      },
+      "revId": "1c72a2f225719d01e4438fdc418a97046e53fe09",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    }
+  ]
+}
