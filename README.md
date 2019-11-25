@@ -10,12 +10,19 @@ Overview
 
 A new logger instance is created with InitLogger function. Process identity is given as a parameter.
 
-### Mapped Diagnostics Context 
+### Mapped Diagnostics Context
 
 The MDCs are key-value pairs, which are included to all log entries by the library.
 The MDC pairs are logger instance specific.
 
-### Log entry format 
+The idea of the MDC is to define values, which stay the same over multiple log writings.
+An MDC value set once will appear in all the subsequent logs written with the logger instance.
+
+A logger instance can be shared by several goroutines.
+Respectively, also the MDC values of the logger instance are then shared by them.
+When sharing of the MDCs is not desired, separate logger instances should be used.
+
+### Log entry format
 
 Each log entry written the library contains
 
