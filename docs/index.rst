@@ -36,6 +36,7 @@ Welcome to O-RAN SC golog Documentation
    :caption: Contents:
 
    overview.rst
+   developer-guide.rst
    release-notes.rst
 
 
