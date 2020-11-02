@@ -71,6 +71,8 @@ Currently the library only supports JSON formatted output written to standard ou
 
 `{"ts":1551183682974,"crit":"INFO","id":"myprog","mdc":{"second key":"other value","mykey":"keyval"},"msg":"hello world!"}`
 
+ `{"ts":1602081593063,"crit":"INFO","id":"myapp","mdc":{"PID":"21587","POD_NAME":"tta-app-5565fc4d6f-ppfl8","CONTAINER_NAME":"tta-app","SERVICE_NAME":"TEST_APP","HOST_NAME":"master-an","SYSTEM_NAME":"CloudSpace-0"},"msg":"This is an example log"}`
+
 Example
 -------
 
@@ -83,7 +85,11 @@ Example
  )
 
  func main() {
+    logFileMonitor := 0;
     logger, _ := mdcloggo.InitLogger("myname")
+    if(logger.Mdclog_format_initialize(logFileMonitor)!=0) {
+        logger.Error("UnSuccessful Format Initialize")
+    }
     logger.MdcAdd("mykey", "keyval")
     logger.Info("Some test logs")
  } 
@@ -143,3 +149,15 @@ Description: The function returns the value string and a boolean which tells if 
 .. code:: bash
 
  func (l *MdcLogger) MdcClean()
+
+7. Mdclog_format_initialize Adds the MDC log format with HostName, PodName, ContainerName, ServiceName,PID,CallbackNotifyforLogFieldChange
+
+.. code:: bash
+
+ func (l *MdcLogger) Mdclog_format_initialize(log_change_monitor int) (int)
+
+Description:  This api Initialzes mdclog print format using MDC Array by extracting the environment variables in the calling process for "SYSTEM_NAME", "HOST_NAME", "SERVICE_NAME", "CONTAINER_NAME", "POD_NAME" & "CONFIG_MAP_NAME"  mapped to HostName, ServiceName, ContainerName, Podname and Configuration-file-name of the services respectively.
+
+  Note: In K8s/Docker Containers the environment variables are declared in the Helm charts.
+
+  Refer xAPP developer guide for more information about how to define Helm chart.

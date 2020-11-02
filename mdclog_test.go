@@ -23,6 +23,8 @@ package golog
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -154,4 +156,41 @@ func TestDebugLogIsNotWrittenIfCurrentLevelIsInfo(t *testing.T) {
 	logger.LevelSet(INFO)
 	logger.Debug("fooo")
 	assert.Empty(t, logbuffer.String())
+}
+
+func TestLogFormatWithMdcArray(t *testing.T) {
+	logger, _ := InitLogger("app")
+	logFileMonitor := 0
+	logger.Mdclog_format_initialize(logFileMonitor)
+	logstr, err := logger.formatLog(INFO, "test")
+	assert.Nil(t, err, "formatLog fails")
+	v := make(map[string]interface{})
+	err = json.Unmarshal(logstr, &v)
+	assert.Equal(t, "INFO", v["crit"])
+	assert.Equal(t, "test", v["msg"])
+	assert.Equal(t, "app", v["id"])
+	_, ok := logger.MdcGet("SYSTEM_NAME")
+	assert.True(t, ok)
+	_, ok = logger.MdcGet("HOST_NAME")
+	assert.True(t, ok)
+	_, ok = logger.MdcGet("SERVICE_NAME")
+	assert.True(t, ok)
+	_, ok = logger.MdcGet("CONTAINER_NAME")
+	assert.True(t, ok)
+	_, ok = logger.MdcGet("POD_NAME")
+	assert.True(t, ok)
+}
+
+func TestLogLevelConfigFileParse(t *testing.T) {
+	logger, _ := InitLogger("app")
+	d1 := []byte("log-level:WARN\n\n")
+	err := ioutil.WriteFile("/tmp/log-file", d1, 0644)
+	assert.Nil(t, err, "Failed to create tmp log-file")
+	os.Setenv("CONFIG_MAP_NAME", "/tmp/log-file")
+	logFileMonitor := 1
+	logger.Mdclog_format_initialize(logFileMonitor)
+	assert.Equal(t, WARN, logger.LevelGet())
+	_, ok := logger.MdcGet("PID")
+	assert.True(t, ok)
+	logger.Mdclog_format_initialize(logFileMonitor)
 }

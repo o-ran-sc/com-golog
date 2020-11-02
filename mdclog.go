@@ -26,8 +26,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"k8s.io/utils/inotify"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -47,11 +53,12 @@ const (
 
 // MdcLogger is the logger instance, created with InitLogger() function.
 type MdcLogger struct {
-	proc   string
-	writer io.Writer
-	mdc    map[string]string
-	mutex  sync.Mutex
-	level  Level
+	proc      string
+	writer    io.Writer
+	mdc       map[string]string
+	mutex     sync.Mutex
+	level     Level
+	init_done int
 }
 
 type logEntry struct {
@@ -92,7 +99,7 @@ func (l *MdcLogger) formatLog(level Level, msg string) ([]byte, error) {
 }
 
 func initLogger(proc string, writer io.Writer) (*MdcLogger, error) {
-	return &MdcLogger{proc: proc, writer: writer, mdc: make(map[string]string), level: DEBUG}, nil
+	return &MdcLogger{proc: proc, writer: writer, mdc: make(map[string]string), level: DEBUG, init_done: 0}, nil
 }
 
 // InitLogger is the init routine which returns a new logger instance.
@@ -177,4 +184,90 @@ func (l *MdcLogger) MdcClean() {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.mdc = make(map[string]string)
+}
+
+func (l *MdcLogger) MdcUpdate(key string, value string) {
+	_, ok := l.MdcGet(key)
+	if ok {
+		l.MdcRemove(key)
+	}
+	l.MdcAdd(key, value)
+}
+
+func (l *MdcLogger) ParseFileContent(fileName string) {
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Println("File reading error", err)
+		return
+	}
+	for _, lineData := range strings.Split(string(data), "\n") {
+		if strings.Contains(lineData, "log-level:") {
+			var level = ERR
+			strList := strings.Split(lineData, ":")
+			if strings.Contains(strings.ToUpper(strList[1]), "DEBUG") {
+				level = DEBUG
+			} else if strings.Contains(strings.ToUpper(strList[1]), "INFO") {
+				level = INFO
+			} else if strings.Contains(strings.ToUpper(strList[1]), "ERR") {
+				level = ERR
+			} else if strings.Contains(strings.ToUpper(strList[1]), "WARN") {
+				level = WARN
+			}
+			l.LevelSet(level)
+		}
+	}
+}
+
+func (l *MdcLogger) watch_changes(watcher *inotify.Watcher, fileName string) {
+	for {
+		select {
+		case ev := <-watcher.Event:
+			if strings.Contains(ev.Name, filepath.Dir(fileName)) {
+				l.ParseFileContent(fileName)
+			}
+		case err := <-watcher.Error:
+			fmt.Println("error:", err)
+		}
+	}
+}
+
+func (l *MdcLogger) readEnvVar(envKey string) string {
+	envValue, provided := os.LookupEnv(envKey)
+	if !provided {
+		envValue = ""
+	}
+	return envValue
+}
+
+func (l *MdcLogger) Mdclog_format_initialize(logFileMonitor int) int {
+	ret := -1
+	logFields := []string{"SYSTEM_NAME", "HOST_NAME", "SERVICE_NAME", "CONTAINER_NAME", "POD_NAME"}
+	for _, envKey := range logFields {
+		envValue := l.readEnvVar(envKey)
+		l.MdcUpdate(envKey, envValue)
+	}
+	l.MdcUpdate("PID", strconv.Itoa(os.Getpid()))
+	if logFileMonitor > 0 {
+		watchPath := l.readEnvVar("CONFIG_MAP_NAME")
+		_, err := os.Stat(watchPath)
+		if !os.IsNotExist(err) {
+			if l.init_done == 0 {
+				l.mutex.Lock()
+				l.init_done = 1
+				l.mutex.Unlock()
+				watcher, err := inotify.NewWatcher()
+				if err != nil {
+					return -1
+				}
+				err = watcher.AddWatch(filepath.Dir(watchPath), syscall.IN_CLOSE_WRITE|syscall.IN_CREATE|syscall.IN_CLOSE)
+				if err != nil {
+					return -1
+				}
+				l.ParseFileContent(watchPath)
+				go l.watch_changes(watcher, watchPath)
+				ret = 0
+			}
+		}
+	}
+	return ret
 }
