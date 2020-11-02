@@ -1,4 +1,4 @@
-Logging library with MDC support
+Logging Library with MDC support
 ================================
 
 A Golang implementation of a structured logging library with Mapped Diagnostics Context (MDC) support.
