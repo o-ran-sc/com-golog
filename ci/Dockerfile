@@ -16,7 +16,7 @@
 # This source code is part of the near-RT RIC (RAN Intelligent Controller)
 # platform project (RICP).
 
-FROM golang:1.12
+FROM golang:1.18
 
 RUN mkdir -p /tmp/golog
 COPY . /tmp/golog
