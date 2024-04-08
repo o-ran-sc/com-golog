@@ -1,0 +1,8 @@
+Verified+1: ORAN Required GHA <releng+oran.required.gha@linuxfoundation.org>
+Verified+1: Jessica Wagantall <jwagantall@linuxfoundation.org>
+Code-Review+2: Jessica Wagantall <jwagantall@linuxfoundation.org>
+Submitted-by: Jessica Wagantall <jwagantall@linuxfoundation.org>
+Submitted-at: Mon, 08 Apr 2024 23:37:24 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/com/golog/+/12689
+Project: com/golog
+Branch: refs/heads/master
