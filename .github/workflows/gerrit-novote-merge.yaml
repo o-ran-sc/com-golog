@@ -87,9 +87,9 @@ jobs:
       JDK_VERSION: "17"
       # yamllint disable-line rule:line-length
       PRE_BUILD_SCRIPT_URL: "https://raw.githubusercontent.com/o-ran-sc/ci-management/master/jjb/com-golog/prescan-golog-go-ubuntu.sh"
-      SONAR_PROJECT_KEY: "o-ran-sc_com-golog"
-      SONAR_ORG: "o-ran-sc"
       SONAR_ARGS: >
+        -Dsonar.organization=o-ran-sc
+        -Dsonar.projectKey=o-ran-sc_com-golog
         -Dsonar.projectName=com-golog
         -Dsonar.build.sourceEncoding=UTF-8
         -Dsonar.language=go
